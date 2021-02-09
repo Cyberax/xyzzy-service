@@ -1,0 +1,56 @@
+############################################################################
+###### Builder container
+############################################################################
+FROM golang:1.14-buster as builder
+ARG GITHUB_TOKEN
+
+RUN apt-get update; DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
+    vim-nox less sudo curl python3 python3-distutils unzip protobuf-compiler libprotobuf-dev \
+    postgresql-client
+
+# Prepare the server
+RUN mkdir /app
+WORKDIR /app
+
+# Install the dependencies in separate layers
+RUN git config --global url."https://$GITHUB_TOKEN@github.com/".insteadOf "https://github.com/"
+COPY go.mod go.sum ./
+RUN GOPRIVATE=github.com/cyberax go mod download
+
+# Copy the source code as the last step and build the server
+COPY . ./
+RUN make generate-rpc
+RUN go build -o xyzzy-canary canary/main/canary.go
+
+############################################################################
+###### Deployment container
+############################################################################
+FROM golang:1.14-buster as deploy
+
+ENV HEROKU_RELEASE_VERSION "v0"
+ENV SERVICE_NAME "xyzzy-canary"
+ENV ENV_NAME "dev"
+
+# Add Datadog repository and signing key
+RUN sh -c "echo 'deb https://apt.datadoghq.com/ stable 7' > /etc/apt/sources.list.d/datadog.list"
+RUN apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 A2923DFF56EDA6E76E55E492D3A80E30382E94DE
+RUN apt-get update; DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
+    vim-nox less curl python3 python3-distutils unzip openssh-server datadog-agent \
+    postgresql-client
+
+# Set default shell to bash (for Heroku ps:exec)
+RUN rm /bin/sh && ln -s /bin/bash /bin/sh
+
+# Prepare the server
+RUN mkdir /app
+WORKDIR /app
+
+# Set up the Datadog
+COPY deploy/datadog.yaml /etc/datadog-agent/datadog.yaml
+COPY deploy/with_dd.sh .
+# Heroku ps:exec support
+COPY deploy/heroku-exec.sh /app/.profile.d/
+
+# Copy the final executable
+COPY --from=builder /app/xyzzy-canary .
+CMD /app/with_dd.sh /app/xyzzy-canary --server-url $SERVER_URL --env-name $ENV_NAME --period 100

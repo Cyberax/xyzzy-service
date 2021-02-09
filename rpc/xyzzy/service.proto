@@ -1,0 +1,31 @@
+syntax = "proto3";
+import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+import "validate/validate.proto";
+
+package xyzzy;
+option go_package = "xyzzy";
+
+option (gogoproto.goproto_getters_all) = true;
+option (gogoproto.equal_all) = true;
+option (gogoproto.marshaler_all) = true;
+option (gogoproto.sizer_all) = true;
+option (gogoproto.unmarshaler_all) = true;
+option (gogoproto.enumdecl_all) = true;
+option (gogoproto.messagename_all) = true;
+option (gogoproto.goproto_registration) = true;
+option (gogoproto.goproto_unrecognized_all) = false;
+option (gogoproto.goproto_unkeyed_all) = false;
+
+service XyzzyData {
+    rpc Ping (PingRequest) returns (PingOk);
+}
+
+///////////////
+// Requests/responses
+///////////////
+message PingRequest {
+}
+
+message PingOk {
+}

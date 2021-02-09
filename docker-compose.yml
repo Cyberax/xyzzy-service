@@ -1,0 +1,39 @@
+version: '3.7'
+services:
+  postgres:
+    image: mdillon/postgis:11-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: xyzzy-dev # default db
+    expose:
+      - '5432'
+    container_name: postgres
+    healthcheck:
+      test: ["CMD", "psql", "-c", "select ?"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+    ports:
+      - '127.0.0.1:54322:5432' # for docker host access via psql
+
+  web:
+    init: true
+    container_name: web
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+      target: builder
+      args:
+        - GITHUB_TOKEN=${GITHUB_TOKEN}
+    user: root
+    links:
+      - postgres
+    ports:
+      - '127.0.0.1:3000:3000'
+    environment:
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+    depends_on:
+      - postgres
+    command:
+      /app/xyzzy-server --db postgres://postgres:postgres@postgres:5432/xyzzy-dev?sslmode=disable --env-name test --listen-interface "[::0]:3000"

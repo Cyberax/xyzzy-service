@@ -1,0 +1,8 @@
+.git
+*/.idea
+bindings/typescript/node_modules
+browser/build
+browser/node_modules
+gen
+tmy3
+.terraform

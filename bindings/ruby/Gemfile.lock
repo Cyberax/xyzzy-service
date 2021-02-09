@@ -1,0 +1,27 @@
+PATH
+  remote: .
+  specs:
+    cyberax-xyzzy-client (1.0.5)
+      rack (~> 1.6)
+      twirp (~> 1.5, >= 1.5.0)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    faraday (1.0.1)
+      multipart-post (>= 1.2, < 3)
+    google-protobuf (3.12.2)
+    multipart-post (2.1.1)
+    rack (1.6.13)
+    twirp (1.5.0)
+      faraday (< 2)
+      google-protobuf (~> 3.0, >= 3.0.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  cyberax-xyzzy-client!
+
+BUNDLED WITH
+   1.17.2

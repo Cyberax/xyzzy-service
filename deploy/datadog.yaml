@@ -1,0 +1,9 @@
+## Provides autodetected defaults, for vanilla Docker environments,
+## please see datadog.yaml.example for all supported options
+api_key:
+log_level: 'warn'
+
+# Enable process-level collection
+process_config:
+  enabled: true
+  scrub_args: true
